@@ -84,61 +84,42 @@
            (Prerequisite $p $c) 
                    (-> (knows $s $p)))))
             
-; !(bind! &rb (new-space))     
-; !(add-reduct &rb (croaks-eats_flies-frog-rule))
-; !(add-reduct &rb (chirps-sings-canary-rule))
-; !(add-reduct &rb (frog-green-rule))
-; !(add-reduct &rb (canary-yellow-rule))
-
-;; Forward chainer
-
-;; Base case
-; (= (fc $premise $depth) $premise)
-; ;; Recursive steps
-; (= (fc $premise1 (S $k))
-;    (match &rb (-> $premise1 $premise2 $conclusion)
-;           (match &kb $premise2 (fc $conclusion $k))))
-
-; (= (fc $premise2 (S $k))
-;    (match &rb (-> $premise1 $premise2 $conclusion)
-;           (match &kb $premise1 (fc $conclusion $k))))
-
-
 (: bc (-> $a                           ; Knowledge base space
           Nat                          ; Maximum depth
-          $b                           ; Query
-          $b))                         ; Result
+          $goal                           ; Query
+          $result))                         ; Result
 
 ;; Base case
-(= (bc $kb $_ (: $prf $ccln)) (match $kb (: $prf $ccln) (: $prf $ccln)))
+(= (bc $kb $_ (: $proofName $ccln))
+ 
+(match $kb (: $prfName $ccln) (: $prfName $ccln)))
 
-;; Recursive step.  $k = (S ( S Z)). Z
-;(S (S Z))
-;(S Z)
-Z
 
-(= (bc $kb (S $k) (: ($prfabs $prfarg) $ccln))
-   (let* (((: $prfabs (-> $prms $ccln)) (bc $kb $k (: $prfabs (-> $prms $ccln))))
-          ((: $prfarg $prms) (bc $kb $k (: $prfarg $prms))))
-     (: ($prfabs $prfarg) $ccln)))
+(= (bc $kb (S $k) (: ($RuleName $RuleArg) $ccln))
+   (let* (((: $RuleName (-> $premise $ccln)) (bc $kb $k (: $RuleName (-> $premise $ccln))))
+          ((: $RuleArg $premise) (bc $kb $k (: $RuleArg $premise))))
+     (: ($RuleName $RuleArg) $ccln)))
+
+;; forward
 
 ;; Base case
-(= (fcc $kb $_ (: $prf $prms)) (: $prf $prms))
+(= (fcc $kb $_ (: $proofName $premise)) 
+(: $proofName $premise))
 
 ;; Recursive step
-(= (fcc $kb (S $k) (: $prfarg $prms))
-   (let (: $prfabs (-> $prms $ccln)) (bc $kb $k (: $prfabs (-> $prms $ccln)))
-     (fcc $kb $k (: ($prfabs $prfarg) $ccln))))
-(= (fcc $kb (S $k) (: $prfabs (-> $prms $ccln)))
-    (let (: $prfarg $prms) (bc $kb $k (: $prfarg $prms))
-     (fcc $kb $k (: ($prfabs $prfarg) $ccln))))
+(= (fcc $kb (S $k) (: $RuleArg $premise))
+   (let (: $RuleName (-> $premise $ccln)) (bc $kb $k (: $RuleName (-> $premise $ccln)))
+     (fcc $kb $k (: ($RuleName $RuleArg) $ccln))))
+(= (fcc $kb (S $k) (: $RuleName (-> $premise $ccln)))
+    (let (: $RuleArg $premise) (bc $kb $k (: $RuleArg $premise))
+     (fcc $kb $k (: ($RuleName $RuleArg) $ccln))))
 
 
 
-!(fcc &kb (fromNumber 5) (: Fact12 (Teaches Dr_Smith AI)))# the perfect
-!(fcc &kb (fromNumber 5) (: Fact13 (Teaches Prof_Jones Logic)))# this also
+!(fcc &kb (fromNumber 5) (: Fact12 (Teaches Dr_Smith AI)))
+!(fcc &kb (fromNumber 5) (: Fact13 (Teaches Prof_Jones Logic)))
 
 
-!(bc  &kb (fromNumber 5) (: $prf (Knows Alice Logic))) # good
-!(bc  &kb (fromNumber 5) (: $prf (TeachingAssistant Alice)))#
+!(bc  &kb (fromNumber 5) (: $prf (Knows Alice Logic))) 
+!(bc  &kb (fromNumber 5) (: $prf (TeachingAssistant Alice)))
 
