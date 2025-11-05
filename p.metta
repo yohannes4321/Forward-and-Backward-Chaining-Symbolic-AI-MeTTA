@@ -4,41 +4,85 @@
 
 !(bind! &kb (new-space))     
 
-!(add-atom &kb (: Fact1 (Evaluation croaks Fritz)))
-!(add-atom &kb (: Fact2 (Evaluation chirps Tweety)))
-!(add-atom &kb (: Fact3 (Inheritance Tweety yellow)))
-!(add-atom &kb (: Fact4 (Evaluation eats_flies Tweety)))
-!(add-atom &kb (: Fact5 (Evaluation eats_flies Fritz)))
-!(add-atom &kb (: Fact6 (True)))
+!(add-atom &kb (: Fact1 (Student Alice)))
+!(add-atom &kb (: Fact2 (Student Bob)))
+!(add-atom &kb (: Fact3 (Student Carol)))
+!(add-atom &kb (: Fact4 (Teacher Dr_Smith)))
+!(add-atom &kb (: Fact5 (Teacher Prof_Jones)))
+!(add-atom &kb (: Fact6 (Course AI)))
+!(add-atom &kb (: Fact7 (Course Logic)))
+!(add-atom &kb (: Fact8 (Course Math)))
+!(add-atom &kb (: Fact9 (Graduate Alice)))
+!(add-atom &kb (: Fact10 (Enrolled Alice AI)))
+!(add-atom &kb (: Fact11 (Enrolled Bob Logic)))
+!(add-atom &kb (: Fact12 (Teaches Dr_Smith AI)))
+!(add-atom &kb (: Fact13 (Teaches Prof_Jones Logic)))
+!(add-atom &kb (: Fact14 (Prerequisite Logic AI)))
+!(add-atom &kb (: Fact15 (Enrolled Alice AI)))
+!(add-atom &kb (: Fact16 (Friend Alice Bob)))
+!(add-atom &kb (: Fact17 (Friend Bob Carol)))
+
+
 
 
 ;; Rule base
 
 !(add-atom &kb 
-   (: croaks-eats_flies-frog-rule
-    (-> (Evaluation croaks $x) 
-           (-> (Evaluation eats_flies $x) 
-                   (Inheritance $x frog)))))
+   (: knows-prerequisite
+    (-> (Enrolled $s $c) 
+           (-> (Prerequisite $p $c)
+                   (Knows $s $p)))))
 
 !(add-atom &kb 
-   (: croaks-eats_flies-frog-rule
-    (-> (Evaluation croaks $x) 
-           (Evaluation eats_flies $x) 
-                   (-> (Inheritance $x frog)))))
+   (: student-enrolled-course
+    (-> (Student $s)
+          (-> (Enrolled $s $c)
+              (-> (Teaches $t $c)
+                   (-> (TaughtBy $s $t)))))))
 
 
 !(add-atom &kb 
+(: graduate-know-logic  
+    (-> (Graduate $s) 
+        (->   (Knows $s Logic) 
+             (TeachingAssistant $s)))))
 
-(: frog-green-rule 
-    (-> (True)
-        (->   (Inheritance $x frog) 
-             (Inheritance $x green)))))
+
+
+
+
 
 !(add-atom &kb 
-(: canary-yellow-rule
-    (-> (True)
-           (->   (Inheritance $x canary)
-            (Inheritance $x yellow)))) )
+(: scholarship
+    (-> (Excellent $s)
+           (->   (TeachingAssistant $s)
+                 (EligibleForScholarship $s)))) )
+
+!(add-atom &kb 
+(: scholarship
+    (-> (ActiveLearner $s)
+           (->   (Hobby $s $h)
+            (WellRounded $s)))) )
+
+
+
+!(add-atom &kb 
+   (: teacher-level
+    (-> (Teaches $t $c1) 
+           (Teaches $t $c2) 
+                   (-> (SeniorTeacher $t)))))
+
+
+!(add-atom &kb 
+   (: Taughtby-student-teacher
+    (-> (Enrolled $s $c) 
+           (Teaches $t $c) 
+                   (-> (TaughtByy $s $t)))))
+!(add-atom &kb 
+   (: enrolled-prerequisite-knows-rule
+    (-> (Enrolled $s $c) 
+           (Prerequisite $p $c) 
+                   (-> (knows $s $p)))))
             
 ; !(bind! &rb (new-space))     
 ; !(add-reduct &rb (croaks-eats_flies-frog-rule))
@@ -91,19 +135,10 @@ Z
 
 
 
- 
-
-!(bc &kb  (fromNumber 4) (: $prf (Inheritance $who-is-frog frog)) ) 
-
-;; Run forward chaining to depth 4 and bind the expanded KB
-!(bind! &kb-fc (fc &kb (fromNumber 4)))
-
-;; Get all newly inferred facts from the forward chaining
-(match &kb-fc (: $prf $fact) $fact)
+!(fcc &kb (fromNumber 5) (: Fact12 (Teaches Dr_Smith AI)))# the perfect
+!(fcc &kb (fromNumber 5) (: Fact13 (Teaches Prof_Jones Logic)))# this also
 
 
- 
+!(bc  &kb (fromNumber 5) (: $prf (Knows Alice Logic))) # good
+!(bc  &kb (fromNumber 5) (: $prf (TeachingAssistant Alice)))#
 
-
-
-;[(: (croaks-eats_flies-frog-rule $prf) (-> (Evaluation eats_flies Fritz) (Inheritance Fritz frog))), (: ((croaks-eats_flies-frog-rule $prf) Fact5) (Inheritance Fritz frog)), (: $prf (Evaluation croaks Fritz))]
